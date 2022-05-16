@@ -1,8 +1,8 @@
 {
-  "name": "TFUI-vue3",
+  "name": "tf-ui-vue3",
   "version": "1.0.0",
   "description":"基于vue3+ts的交通组件库",
-  "private": true,
+  "private": false,
   "main": "lib/index.min.js",
   "module": "lib/index.esm.js",
   "typings": "lib/index.d.ts",
