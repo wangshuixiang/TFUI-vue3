@@ -1,7 +1,7 @@
 {
   "name": "tf-ui-vue3",
   "version": "1.0.1",
-  "description":"基于vue3+ts的交通组件库",
+  "description": "基于vue3+ts的交通组件库",
   "private": false,
   "main": "lib/index.min.js",
   "module": "lib/index.esm.js",
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "konva": "^8.3.8",
     "vue": "^3.0.0"
   },
   "devDependencies": {

@@ -1,8 +1,8 @@
 import { App } from 'vue'
-import TFButton from './button'
+import tfInterModel from './interModel'
  
 // 所有组件列表
-const components = [ TFButton ]
+const components = [ tfInterModel ]
  
 // 定义 install 方法， App 作为参数
 const install = (app: App): void => {
@@ -11,7 +11,7 @@ const install = (app: App): void => {
 }
  
 export {
-  TFButton
+  tfInterModel
 }
  
 export default {

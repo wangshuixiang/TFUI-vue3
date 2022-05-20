@@ -5215,6 +5215,11 @@ kind-of@^6.0.0, kind-of@^6.0.2:
   resolved "https://registry.npm.taobao.org/kind-of/download/kind-of-6.0.3.tgz#07c05034a6c349fa06e24fa35aa76db4580ce4dd"
   integrity sha1-B8BQNKbDSfoG4k+jWqdttFgM5N0=
 
+konva@^8.3.8:
+  version "8.3.8"
+  resolved "http://172.16.2.65:4873/konva/-/konva-8.3.8.tgz#c0e6f37f8831ff846e9bf33fb760c27f7e7eb292"
+  integrity sha512-Y6ckWvsZQEpD2r6catM/O2CKP+ajrP3ijalFZ6TZOwdbx+opb/tXDjGAt5OA2kNOyj8mZgl4ZKkqWRdg7HUKmA==
+
 launch-editor-middleware@^2.2.1:
   version "2.2.1"
   resolved "https://registry.npm.taobao.org/launch-editor-middleware/download/launch-editor-middleware-2.2.1.tgz#e14b07e6c7154b0a4b86a0fd345784e45804c157"

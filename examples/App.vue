@@ -1,24 +1,376 @@
 <template>
-  <div>组件示例</div>
-  <div>{{ count }}</div>
-  <tf-button @click="handleClick">按钮</tf-button>
+  <div>
+    <span>路口模型</span>
+    <div class="modelBox">
+      <tf-inter-model :option="option"
+                      ref="interModel" />
+    </div>
+  </div>
+
 </template>
  
 <script lang="ts">
-import { defineComponent } from "vue";
-
+import { defineComponent, reactive, toRefs, ref, onMounted } from "vue";
+const interData = {
+  acsId: 200001,
+  name: "文化路-江寺路",
+  latitude: 30.16417026083252,
+  longitude: 120.26706699803397,
+  entrances: [
+    {
+      name: "文化路东",
+      degree: 0,
+      orientation: 1,
+      en_id: 1,
+      id: 1,
+      road_center_mode: "singleYellowLine", // 分割形式
+      canalization: 0,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_flow: 1,
+          lane_type: 0,
+          has_waiting_area: true,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+          lane_type: 0,
+          has_waiting_area: true,
+        },
+        {
+          id: 3,
+          lane_type: 0,
+          lane_flow: 3,
+        },
+      ],
+    },
+    {
+      name: "江寺路南",
+      degree: 90,
+      orientation: 2,
+      en_id: 2,
+      road_center_mode: "greenArea",
+      canalization: 1,
+      id: 2,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_type: 0,
+          lane_flow: 8,
+        },
+        {
+          id: 2,
+          lane_type: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_type: 0,
+          lane_flow: 3,
+        },
+        {
+          id: 4,
+          lane_type: 4,
+          lane_flow: 3,
+        },
+      ],
+    },
+    {
+      name: "文化路西",
+      degree: 180,
+      orientation: 3,
+      en_id: 3,
+      road_center_mode: "doubleYellowLine", // 分割形式
+      canalization: 0,
+      id: 3,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_type: 0,
+          lane_flow: 10,
+        },
+        {
+          id: 2,
+          lane_type: 0,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_type: 0,
+          lane_flow: 3,
+        },
+      ],
+    },
+    {
+      name: "江寺路北",
+      degree: 270,
+      orientation: 4,
+      en_id: 4,
+      road_center_mode: "singleYellowLine", // 分割形式
+      canalization: 0,
+      id: 4,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_type: 0,
+          lane_flow: 1,
+        },
+        {
+          id: 2,
+          lane_type: 0,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_type: 0,
+          lane_flow: 10,
+        },
+      ],
+    },
+  ],
+  is_have_son: 0, // 路口类型 0：普通路口  1：父子路口  2：匝道路口
+  link_en: "",
+  shape: 4,
+  son_entrances: [
+    {
+      name: "文化路东子",
+      degree: 0,
+      orientation: 5,
+      en_id: 5,
+      id: 5,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_flow: 9,
+        },
+        {
+          id: 2,
+          lane_flow: 10,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+    },
+    {
+      name: "江寺路南子",
+      degree: 90,
+      orientation: 6,
+      en_id: 6,
+      id: 6,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_flow: 8,
+        },
+        {
+          id: 2,
+          lane_flow: 10,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+    },
+    {
+      name: "文化路西子",
+      degree: 180,
+      orientation: 7,
+      en_id: 7,
+      id: 7,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_flow: 10,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 3,
+        },
+      ],
+    },
+    {
+      name: "江寺路北子",
+      degree: 270,
+      orientation: 8,
+      en_id: 8,
+      id: 8,
+      exit_lanes: [
+        {
+          id: 1,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 3,
+          lane_flow: 2,
+        },
+      ],
+      motor_lanes: [
+        {
+          id: 1,
+          lane_flow: 1,
+        },
+        {
+          id: 2,
+          lane_flow: 2,
+        },
+        {
+          id: 2,
+          lane_flow: 10,
+        },
+      ],
+    },
+  ],
+  son_pointer: 0,
+  son_shape: 4,
+};
 export default defineComponent({
   name: "App",
-  components: {},
-  data() {
-    return {
-      count: 0,
+  setup() {
+    const state = reactive({
+      option: {
+        centerLineMode: false, // 是否道路中线对齐
+        drawPhase: false, // 是否绘制左侧相位
+        showRoadAsideLine: true, // 显示道路边线
+        showLaneDashedLine: true, // 显示道路虚线
+        showManRoadLine: true, // 显示斑马线
+        showStopLine: true, // 显示停车线
+        showManRoad: true, // 显示行人车道
+        showLaneFlow: true, // 显示车道流向
+        showRoadName: true, // 显示路口名称
+        laneFlowOffetStopLine: 0, // 车道流向离停车线的距离 车道宽度的倍数
+        routeNameColor: "#000000", // 默认路口名称颜色
+        defaultFlowColor: "#008aaf", // 默认流向颜色
+        HighLightFlowColor: "#00ec00", // 高亮流向颜色
+        saturationFlowColor: "#ffffff", // 饱和度流向颜色
+        phaseBackColor: "#ffffff", // 相位背景颜色
+        laneBackColor: "#283349", // 车道背景颜色
+        phaseNumColor: "#446a86", // 相位号颜色
+      },
+    });
+    const interModel = ref();
+    const drawInterModel = (interData: any) => {
+      setTimeout(() => {
+        console.log(interModel, interModel.value);
+        interModel.value.init(interData);
+      }, 1000);
     };
-  },
-  methods: {
-    handleClick() {
-      this.count++;
-    },
+    onMounted(() => {
+      drawInterModel(interData);
+    });
+    return {
+      ...toRefs(state),
+      drawInterModel,
+    };
   },
 });
 </script>
@@ -31,5 +383,10 @@ export default defineComponent({
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+  .modelBox {
+    width: 500px;
+    height: 500px;
+    border: 1px solid #ccc;
+  }
 }
 </style>
