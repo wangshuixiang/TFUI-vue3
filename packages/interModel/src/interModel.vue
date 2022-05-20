@@ -16,7 +16,7 @@
  
 <script lang="ts">
 import Konva from "konva";
-import { defineExpose, defineComponent, reactive, toRefs, ref } from "vue";
+import { defineComponent, reactive, toRefs, ref } from "vue";
 import {
   getDrawFlowData,
   getLaneFlowPoint,
@@ -55,9 +55,9 @@ export default defineComponent({
       ctrlWay: any = null,
       nearImg: any = null,
       bikeImg: any = null;
-    const tfInterModel: any = ref(null);
-    const scTfInterBox: any = ref(null);
-    const scTfPhaseBox: any = ref(null);
+    const tfInterModel = ref();
+    const scTfInterBox = ref();
+    const scTfPhaseBox = ref();
     const state = reactive({
       phaseWidth: 100,
       drawOption: {
@@ -159,6 +159,7 @@ export default defineComponent({
         }
         state.interType = interData.is_have_son;
         methods.getDrawOption();
+        console.log();
         clientWidth = tfInterModel.value.clientWidth;
         clientHeight = tfInterModel.value.clientHeight;
         baseLayerWidth = Math.min(clientWidth, clientHeight);
@@ -496,8 +497,8 @@ export default defineComponent({
     };
     //---------------------------------------------drawMixins---------------------------------------------
     const drawMethods = {
-      initLayer(layerName: any) {
-        layerName && layerName.destroy();
+      initLayer() {
+        realLayer && realLayer.destroy();
         let width, height;
         let x = 0;
         let y = 0;
@@ -507,15 +508,15 @@ export default defineComponent({
         } else {
           y = -(clientWidth - clientHeight) / 2;
         }
-        layerName = new Konva.Layer({
+        realLayer = new Konva.Layer({
           x: state.drawOption.drawPhase
             ? x + width / 2 + width / 12
             : x + width / 2,
           y: y + height / 2,
         });
-        layerName.height = height;
-        layerName.width = height;
-        modelStage.add(layerName);
+        realLayer.height = height;
+        realLayer.width = height;
+        modelStage.add(realLayer);
       },
       // 绘制进口流向
       drawRoadFlow(movements: any, cb: any) {
@@ -1681,7 +1682,7 @@ export default defineComponent({
     const drawRealMethods = {
       // 绘制实时信息
       drawRealInfo(realInfo: any, movements: any) {
-        drawMethods.initLayer("realLayer");
+        drawMethods.initLayer();
         // 设置实时信息基础信息
         this.setRealBaseInfo(realInfo);
         // 绘制左边相位
@@ -2806,9 +2807,11 @@ export default defineComponent({
       },
     };
     imageLoadMethods.initImg();
-    // defineExpose({ ...methods });
     return {
       ...toRefs(state),
+      tfInterModel,
+      scTfInterBox,
+      scTfPhaseBox,
       ...methods,
       ...drawMethods,
       ...drawRealMethods,
@@ -2816,7 +2819,6 @@ export default defineComponent({
     };
   },
 });
-// defineExpose({ ...methods })
 </script>
  
 <style scoped lang="scss">

@@ -333,13 +333,67 @@ const interData = {
   son_pointer: 0,
   son_shape: 4,
 };
+
+const movements: any = [];
+const entrances = interData.entrances.length;
+for (let i = 0; i < entrances * 4; i++) {
+  const movement = {
+    if_release: i % 2 ? true : false, //是否放行
+    enter_port_direction: Math.ceil((i + 1) / 4), //进口方向 目前===进口id
+    if_control: 1, // 是否参与控制
+    fd_flow: false, // 是否辅道流向
+    movements_type: (i % 4) + 1, // 流向类型 流向类型 1左 2直 3右 4人行
+    num_movements: i + 1,
+  };
+  movements.push(movement);
+}
+const realInfo: any = {
+  acs_id: 300040,
+  auto_or_manual: 0,
+  coordinate_phase_num: 1,
+  ctrl_mode: 1,
+  ctrl_way: 10,
+  ctrl_way_last: 0,
+  current_phase_num: 1,
+  current_phase_remaining_time: 10,
+  current_phase_time: 30,
+  cyc_flag: 0,
+  cyc_remaining_time: 50,
+  cyc_time: 90,
+  datetime: "2021-08-04 20:49:46",
+  day_plan_num: 1,
+  dayplan_schedule_num: 1,
+  degrade_state: 0,
+  error_info: [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  light_infos: [],
+  main_day_plan_num: 1,
+  main_time_period_num: 1,
+  movements_state: [
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0,
+  ],
+  off_set: 6,
+  phase_movements_info: [
+    524287, 28792, 16448, 4112, 1797, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  ],
+  phase_num: 4,
+  phase_order: [
+    { id: "A", length: 30, green_time: 0, yellow_time: 0, red_time: 0 },
+    { id: "B", length: 30, green_time: 0, yellow_time: 0, red_time: 0 },
+    { id: "C", length: 30, green_time: 0, yellow_time: 0, red_time: 0 },
+  ],
+  phase_scheme_num: 2,
+  queue_infos: [],
+  time_period_num: 6,
+};
+
 export default defineComponent({
   name: "App",
   setup() {
     const state = reactive({
       option: {
         centerLineMode: false, // 是否道路中线对齐
-        drawPhase: false, // 是否绘制左侧相位
+        drawPhase: true, // 是否绘制左侧相位
         showRoadAsideLine: true, // 显示道路边线
         showLaneDashedLine: true, // 显示道路虚线
         showManRoadLine: true, // 显示斑马线
@@ -360,8 +414,8 @@ export default defineComponent({
     const interModel = ref();
     const drawInterModel = (interData: any) => {
       setTimeout(() => {
-        console.log(interModel, interModel.value);
         interModel.value.init(interData);
+        interModel.value.drawRealInfo(realInfo, movements);
       }, 1000);
     };
     onMounted(() => {
@@ -369,6 +423,7 @@ export default defineComponent({
     });
     return {
       ...toRefs(state),
+      interModel,
       drawInterModel,
     };
   },
