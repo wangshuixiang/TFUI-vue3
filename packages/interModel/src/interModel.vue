@@ -2821,7 +2821,7 @@ export default defineComponent({
 });
 </script>
  
-<style scoped lang="scss">
+<!-- <style scoped lang="scss">
 .sc-tf-inter-model {
   width: 100%;
   height: 100%;
@@ -2858,4 +2858,4 @@ export default defineComponent({
     flex-direction: column;
   }
 }
-</style>
+</style> -->
