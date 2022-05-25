@@ -101,7 +101,7 @@ const Util = {
     let [x1, y1] = pointA
     let [x3, y3] = pointB
     if (x1 > x3) {
-      angelA = -angelA;
+      angelA = -20;
       [x1, y1, x3, y3] = [x3, y3, x1, y1]
     }
     let x2 = x1 + Math.cos(Util.toRadian(angelA + Util.toAngle(Math.atan((y3 - y1) / (x3 - x1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - x1) * (x3 - x1)) / 2 / Math.cos(Util.toRadian(angelA))
@@ -373,7 +373,9 @@ class CrossDirectionObject {
     this.calculation('width')
 
     // 核心点位
-    this.point = {}
+    this.point = {
+
+    }
     // 转换正后的坐标
     this.correctPoint = {}
     // 准确计算后的点线面数据
@@ -383,7 +385,7 @@ class CrossDirectionObject {
   }
 
   // 设置左右方向参数
-  setLeftAndRight (param:any) {
+  setLeftAndRight (param:any):void {
     const option = Object.assign({
       angleLeft: 0,
       angleRight: 0,
@@ -403,7 +405,7 @@ class CrossDirectionObject {
   }
 
   // 计算关联属性
-  calculation (prop:any) {
+  calculation (prop:any):void {
     let angleLeft2 = Util.calculateLeftRightRadian(this.degreeLeft, this.degree)
     let angleRight2 = Util.calculateLeftRightRadian(this.degree, this.degreeRight)
     let toLeftAngle = Util.calculateAngle(this.degreeLeft, this.degree)
@@ -473,17 +475,18 @@ class CrossDirectionObject {
         }
 
         // eslint-disable-next-line no-case-declarations
-        const minY = this.point.AL.y < this.point.AR.y ? this.point.AL.y : this.point.AR.y
+        // const minY = this.point.AL.y < this.point.AR.y ? this.point.AL.y : this.point.AR.y
+        // const MINY = Number(Math.min(this.point.AL.y , this.point.AR.y))
         this.point.CL = {
           x: this.point.AL.x,
-          y: minY - CrossConst.defaultRoadLength
+          y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
         }
         this.point.CR = {
           x: this.point.AR.x,
-          y: minY - CrossConst.defaultRoadLength
+          y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
         }
         // 使每个路口都垂直，所以关键点位8的高度要一致
-        let h = Math.min(this.point.AL.y, this.point.AR.y)
+        // let MINH =Number( Math.min(this.point.AL.y, this.point.AR.y))
         // 记录原来的B点位 BLO  BRO
         this.point.BLO = {
           x: this.point.AL.x,
@@ -495,11 +498,11 @@ class CrossDirectionObject {
         }
         this.point.BL = {
           x: this.point.AL.x,
-          y: this.centerToManRoadDistance !== 0 ? -this.centerToManRoadDistance : h - (CrossConst.manRoadLength + CrossConst.manRadianLength)
+          y: this.centerToManRoadDistance !== 0 ? -this.centerToManRoadDistance : Math.min(this.point.AL.y, this.point.AR.y) - (CrossConst.manRoadLength + CrossConst.manRadianLength)
         }
         this.point.BR = {
           x: this.point.AR.x,
-          y: this.centerToManRoadDistance !== 0 ? -this.centerToManRoadDistance : h - (CrossConst.manRoadLength + CrossConst.manRadianLength)
+          y: this.centerToManRoadDistance !== 0 ? -this.centerToManRoadDistance : Math.min(this.point.AL.y, this.point.AR.y) - (CrossConst.manRoadLength + CrossConst.manRadianLength)
         }
         // 设备杆位置
         this.point.roadPole = {
@@ -521,11 +524,11 @@ class CrossDirectionObject {
         }
         this.point.C1L = {
           x: this.point.AL.x - CrossConst.walkwayWidth,
-          y: minY - CrossConst.defaultRoadLength
+          y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
         }
         this.point.C1R = {
           x: this.point.AR.x + CrossConst.walkwayWidth,
-          y: minY - CrossConst.defaultRoadLength
+          y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
         }
         // 道路名称位置
         this.point.roadName = {
@@ -536,11 +539,11 @@ class CrossDirectionObject {
         if (this.road_center_mode === RoadCenterMode.greenArea) {
           this.point.E1 = {
             x: this.point.CL.x + this.out * CrossConst.roadWidth + this.outBicycleLane * CrossConst.bicycleLaneWidth,
-            y: minY - CrossConst.defaultRoadLength
+            y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
           }
           this.point.F1 = {
             x: this.point.CL.x + this.out * CrossConst.roadWidth + CrossConst.greenWidth + this.outBicycleLane * CrossConst.bicycleLaneWidth,
-            y: minY - CrossConst.defaultRoadLength
+            y: Math.min(this.point.AL.y , this.point.AR.y) - CrossConst.defaultRoadLength
           }
           this.point.FToE = []
           let angleIndex = 0
@@ -610,63 +613,61 @@ class CrossDirectionObject {
       // 计算从B到D点间弧度的点。
       case 'BToD':
         // eslint-disable-next-line no-case-declarations
-        const angelA = 20
+        // const angelA = 20
         // eslint-disable-next-line no-case-declarations
-        const createDRToBR = () => {
-          let rightPoint = {
-            x: this.point.AR.x + Math.cos(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength),
-            y: this.point.AR.y + Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
-          }
-          if (toRightAngle <= 90) {
-            rightPoint = {
-              x: this.point.AR.x + Math.cos(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength),
-              y: this.point.AR.y - Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
-            }
-          } else if (toRightAngle > 180) {  // todo 待验证
-            rightPoint = {
-              x: this.point.AR.x,
-              y: this.point.AR.y - Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
-            }
-          }
-          this.point.BToDR = []
-          this.point.B1ToD1R = []
-          let { x: x1, y: y1 } = this.point.BR
-          let { x: x3, y: y3 } = rightPoint
-          let x2 = x1 + Math.cos(Util.toRadian(angelA + Util.toAngle(Math.atan((y3 - y1) / (x3 - x1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - x1) * (x3 - x1)) / 2 / Math.cos(Util.toRadian(angelA))
-          let y2 = y1 + Math.sin(Util.toRadian(angelA + Util.toAngle(Math.atan((y3 - y1) / (x3 - x1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - x1) * (x3 - x1)) / 2 / Math.cos(Util.toRadian(angelA))
-          if (toRightAngle < 180 && this.entranceNum !== 2) {
-            for (let index = 0; index < 1; index += 0.01) {
-              const [x, y] = Util.twoBezier(index, [x1, y1], [x2, y2], [x3, y3])
-              this.point.BToDR.push({ x, y })
-            }
-          } else {
-            this.point.BToDR = [{ x: x1, y: y1 }, { x: x3, y: y3 }]
-          }
-          // 边缘内容
+        let rightPoint = {
+          x: this.point.AR.x + Math.cos(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength),
+          y: this.point.AR.y + Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
+        }
+        if (toRightAngle <= 90) {
           rightPoint = {
-            x: rightPoint.x + Math.sin(angleRight2) * CrossConst.walkwayWidth,
-            y: rightPoint.y - Math.cos(angleRight2) * CrossConst.walkwayWidth
+            x: this.point.AR.x + Math.cos(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength),
+            y: this.point.AR.y - Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
           }
-          this.point.rightPoint = rightPoint
-          x1 += CrossConst.walkwayWidth
-          x3 = rightPoint.x
-          y3 = rightPoint.y
-          x2 = x1 + Math.cos(Util.toRadian(angelA + Util.toAngle(Math.atan((y3 - y1) / (x3 - x1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - x1) * (x3 - x1)) / 2 / Math.cos(Util.toRadian(angelA))
-          y2 = y1 + Math.sin(Util.toRadian(angelA + Util.toAngle(Math.atan((y3 - y1) / (x3 - x1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - x1) * (x3 - x1)) / 2 / Math.cos(Util.toRadian(angelA))
-          this.point.OOO = {
-            x: x2,
-            y: y2
-          }
-          if (toRightAngle < 180 && this.entranceNum !== 2) {
-            for (let index = 0; index < 1; index += 0.01) {
-              const [x, y] = Util.twoBezier(index, [x1, y1], [x2, y2], [x3, y3])
-              this.point.B1ToD1R.push({ x, y })
-            }
-          } else {
-            this.point.B1ToD1R = [{ x: x1, y: y1 }, { x: x3, y: y3 }]
+        } else if (toRightAngle > 180) {  // todo 待验证
+          rightPoint = {
+            x: this.point.AR.x,
+            y: this.point.AR.y - Math.sin(angleRight2) * (CrossConst.manRoadLength + CrossConst.manRadianLength)
           }
         }
-        createDRToBR()
+        this.point.BToDR = []
+        this.point.B1ToD1R = []
+        let { x: x1, y: y1 } = this.point.BR
+        let { x: x3, y: y3 } = rightPoint
+        let X1=this.point.BR.x
+        let x2 = X1 + Math.cos(Util.toRadian(20 + Util.toAngle(Math.atan((y3 - y1) / (x3 - X1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - X1) * (x3 - X1)) / 2 / Math.cos(Util.toRadian(20))
+        let y2 = y1 + Math.sin(Util.toRadian(20 + Util.toAngle(Math.atan((y3 - y1) / (x3 - X1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - X1) * (x3 - X1)) / 2 / Math.cos(Util.toRadian(20))
+        if (toRightAngle < 180 && this.entranceNum !== 2) {
+          for (let index = 0; index < 1; index += 0.01) {
+            const [x, y] = Util.twoBezier(index, [X1, y1], [x2, y2], [x3, y3])
+            this.point.BToDR.push({ x, y })
+          }
+        } else {
+          this.point.BToDR = [{ x: X1, y: y1 }, { x: x3, y: y3 }]
+        }
+        // 边缘内容
+        rightPoint = {
+          x: rightPoint.x + Math.sin(angleRight2) * CrossConst.walkwayWidth,
+          y: rightPoint.y - Math.cos(angleRight2) * CrossConst.walkwayWidth
+        }
+        this.point.rightPoint = rightPoint
+        X1 += CrossConst.walkwayWidth
+        x3 = rightPoint.x
+        y3 = rightPoint.y
+        x2 = X1 + Math.cos(Util.toRadian(20 + Util.toAngle(Math.atan((y3 - y1) / (x3 - X1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - X1) * (x3 - X1)) / 2 / Math.cos(Util.toRadian(20))
+        y2 = y1 + Math.sin(Util.toRadian(20 + Util.toAngle(Math.atan((y3 - y1) / (x3 - X1))))) * Math.sqrt((y3 - y1) * (y3 - y1) + (x3 - X1) * (x3 - X1)) / 2 / Math.cos(Util.toRadian(20))
+        this.point.OOO = {
+          x: x2,
+          y: y2
+        }
+        if (toRightAngle < 180 && this.entranceNum !== 2) {
+          for (let index = 0; index < 1; index += 0.01) {
+            const [x, y] = Util.twoBezier(index, [X1, y1], [x2, y2], [x3, y3])
+            this.point.B1ToD1R.push({ x, y })
+          }
+        } else {
+          this.point.B1ToD1R = [{ x: X1, y: y1 }, { x: x3, y: y3 }]
+        }
         break
       // ALToAR 和 BLToBR
       case 'ALToAR':
@@ -1063,7 +1064,7 @@ class CrossRampObject {
 
     this.calculation('point')
   }
-  getDegreeByEnId (en_id:any) {
+  getDegreeByEnId (en_id:any):void {
     const degreeMap:any = {
       1: 270,
       2: 90,
@@ -1072,7 +1073,7 @@ class CrossRampObject {
     return degreeMap[en_id]
   }
   // 计算关键点位数据
-  calculation (prop:any) {
+  calculation (prop:any):void {
     let dw = 0
     switch (this.road_center_mode) {
       case RoadCenterMode.doubleYellowLine:

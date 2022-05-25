@@ -39,7 +39,7 @@ export default defineComponent({
       },
     },
   },
-  setup(props) {
+  setup(props, { attrs, slots, emit, expose }) {
     let modelStage: any = null,
       baseLayer: any = null,
       realLayer: any = null,
@@ -162,6 +162,9 @@ export default defineComponent({
         console.log();
         clientWidth = tfInterModel.value.clientWidth;
         clientHeight = tfInterModel.value.clientHeight;
+        if (!clientWidth || !clientHeight) {
+          return;
+        }
         baseLayerWidth = Math.min(clientWidth, clientHeight);
         // 1、初始化canvas场景：Stage
         modelStage = new Konva.Stage({
@@ -206,7 +209,6 @@ export default defineComponent({
         const me = this;
         const drawInterData = this.resetInterData(interData);
         cross = new CrossInfo(drawInterData);
-        // console.log(this.cross)
         // 根据数据绘画
         const roadPolygonShape = new Konva.Shape({
           stroke: "#23324b",
@@ -2821,7 +2823,7 @@ export default defineComponent({
 });
 </script>
  
-<!-- <style scoped lang="scss">
+<style lang="scss">
 .sc-tf-inter-model {
   width: 100%;
   height: 100%;
@@ -2844,18 +2846,13 @@ export default defineComponent({
     width: auto;
     height: 100%;
     z-index: 2;
-  }
-  .sc-tf-phase-box {
-    // position: absolute;
-    // left: 0;
-    // top: 0;
-    // z-index: 2;
-    width: calc(100% + 20px);
-    // background-color: #fff;
-    height: 100%;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
+    .sc-tf-phase-box {
+      width: calc(100% + 20px);
+      height: 100%;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
   }
 }
-</style> -->
+</style>

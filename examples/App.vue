@@ -414,6 +414,7 @@ export default defineComponent({
     const interModel = ref();
     const drawInterModel = (interData: any) => {
       setTimeout(() => {
+        console.log(interModel, interModel.value);
         interModel.value.init(interData);
         interModel.value.drawRealInfo(realInfo, movements);
       }, 1000);
