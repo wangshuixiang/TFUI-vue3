@@ -520,6 +520,17 @@ export default defineComponent({
         realLayer.width = height;
         modelStage.add(realLayer);
       },
+      // 根据方向id获取进口id
+      getEnidWithDirection(enter_port_direction: any) {
+        let en_id = null;
+        const item: any = cross.entrances.find((it: any) => {
+          return it.orientation === enter_port_direction;
+        });
+        if (item) {
+          en_id = item.en_id;
+        }
+        return en_id;
+      },
       // 绘制进口流向
       drawRoadFlow(movements: any, cb: any) {
         const sortMovement = this.getSortMovement(movements);
@@ -803,7 +814,10 @@ export default defineComponent({
         let sortMovement: any = [];
         cross.entranceArray.forEach((it: any, i: any) => {
           const enterMove = movements.filter((itt: any) => {
-            return itt.enter_port_direction === it.en_id && itt.if_control;
+            const en_id = drawMethods.getEnidWithDirection(
+              itt.enter_port_direction
+            );
+            return en_id === it.en_id && itt.if_control;
           });
           // 流向带左
           const leftArray = enterMove.filter((itt: any) => {
@@ -893,7 +907,7 @@ export default defineComponent({
       // 绘制流向饱和度
       drawFlowSaturation(flowSaturation: any) {
         flowSaturation.forEach((it: any, i: any) => {
-          const enterInfo = cross.entranceArray[it.enter_port_direction - 1];
+          const enterInfo = cross.entranceArray[it.en_id - 1];
           const flowData =
             enterInfo.polygonData.roadFlowPolygon[it.movements_type - 1];
           // 绘制饱和度流向
@@ -1890,23 +1904,23 @@ export default defineComponent({
                 bool = true;
               }
             }
-            if (
-              flow &&
-              flow.enter_port_direction === it.en_id &&
-              flow.if_control &&
-              bool
-            ) {
-              if (type === "phase") {
-                if (Number(itt)) {
+            if (flow) {
+              const en_id = drawMethods.getEnidWithDirection(
+                flow.enter_port_direction
+              );
+              if (en_id === it.en_id && flow.if_control && bool) {
+                if (type === "phase") {
+                  if (Number(itt)) {
+                    list.push(flow.movements_type);
+                  }
+                } else if (type === "run") {
+                  // if (Number(itt)) {
                   list.push(flow.movements_type);
-                }
-              } else if (type === "run") {
-                // if (Number(itt)) {
-                list.push(flow.movements_type);
-                // }
-              } else {
-                if (Number(itt) !== 1 && Number(itt) !== 0) {
-                  list.push(flow.movements_type);
+                  // }
+                } else {
+                  if (Number(itt) !== 1 && Number(itt) !== 0) {
+                    list.push(flow.movements_type);
+                  }
                 }
               }
             }
@@ -1945,8 +1959,11 @@ export default defineComponent({
             const flow = movementMap[j + 1];
             if (flow) {
               flow.fd_flow = !!flow.fd_flow;
+              const en_id = drawMethods.getEnidWithDirection(
+                flow.enter_port_direction
+              );
               if (
-                flow.enter_port_direction === it.en_id &&
+                en_id === it.en_id &&
                 flow.if_control &&
                 flow.fd_flow === fdFlow
               ) {
@@ -2104,10 +2121,10 @@ export default defineComponent({
         let greenFlowList: any = [];
         movementParas.forEach((it: any) => {
           if (it.if_control) {
-            if (
-              it.enter_port_direction === curEntrance.en_id &&
-              it.fd_flow === fdFlow
-            ) {
+            const en_id = drawMethods.getEnidWithDirection(
+              it.enter_port_direction
+            );
+            if (en_id === curEntrance.en_id && it.fd_flow === fdFlow) {
               if (movements_state[it.num_movements - 1] === 3) {
                 greenFlowList.push(it.movements_type);
               }

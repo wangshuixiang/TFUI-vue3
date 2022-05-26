@@ -145,7 +145,7 @@ const Util = {
     }
     if (degree <= 90) {
       degreeRadia = Util.toRadian(90 - degree)
-    } else if (degree > 90 &&  degree< 180) {
+    } else if (degree > 90) {
       degreeRadia = Util.toRadian(degree - 90)
     }
     return degreeRadia

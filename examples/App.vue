@@ -59,56 +59,56 @@ const interData = {
         },
       ],
     },
-    {
-      name: "江寺路南",
-      degree: 90,
-      orientation: 2,
-      en_id: 2,
-      road_center_mode: "greenArea",
-      canalization: 1,
-      id: 2,
-      exit_lanes: [
-        {
-          id: 1,
-          lane_flow: 2,
-        },
-        {
-          id: 2,
-          lane_flow: 2,
-        },
-        {
-          id: 3,
-          lane_flow: 2,
-        },
-      ],
-      motor_lanes: [
-        {
-          id: 1,
-          lane_type: 0,
-          lane_flow: 8,
-        },
-        {
-          id: 2,
-          lane_type: 2,
-          lane_flow: 2,
-        },
-        {
-          id: 3,
-          lane_type: 0,
-          lane_flow: 3,
-        },
-        {
-          id: 4,
-          lane_type: 4,
-          lane_flow: 3,
-        },
-      ],
-    },
+    // {
+    //   name: "江寺路南",
+    //   degree: 90,
+    //   orientation: 2,
+    //   en_id: 2,
+    //   road_center_mode: "greenArea",
+    //   canalization: 1,
+    //   id: 2,
+    //   exit_lanes: [
+    //     {
+    //       id: 1,
+    //       lane_flow: 2,
+    //     },
+    //     {
+    //       id: 2,
+    //       lane_flow: 2,
+    //     },
+    //     {
+    //       id: 3,
+    //       lane_flow: 2,
+    //     },
+    //   ],
+    //   motor_lanes: [
+    //     {
+    //       id: 1,
+    //       lane_type: 0,
+    //       lane_flow: 8,
+    //     },
+    //     {
+    //       id: 2,
+    //       lane_type: 2,
+    //       lane_flow: 2,
+    //     },
+    //     {
+    //       id: 3,
+    //       lane_type: 0,
+    //       lane_flow: 3,
+    //     },
+    //     {
+    //       id: 4,
+    //       lane_type: 4,
+    //       lane_flow: 3,
+    //     },
+    //   ],
+    // },
     {
       name: "文化路西",
       degree: 180,
       orientation: 3,
-      en_id: 3,
+      en_id: 2,
       road_center_mode: "doubleYellowLine", // 分割形式
       canalization: 0,
       id: 3,
@@ -148,7 +148,7 @@ const interData = {
       name: "江寺路北",
       degree: 270,
       orientation: 4,
-      en_id: 4,
+      en_id: 3,
       road_center_mode: "singleYellowLine", // 分割形式
       canalization: 0,
       id: 4,
@@ -374,7 +374,7 @@ const realInfo: any = {
   ],
   off_set: 6,
   phase_movements_info: [
-    524287, 28792, 16448, 4112, 1797, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    257, 28792, 16448, 4112, 1797, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   ],
   phase_num: 4,
   phase_order: [
