@@ -39,7 +39,7 @@ export default defineComponent({
       },
     },
   },
-  setup(props) {
+  setup(props, { attrs, slots, emit, expose }) {
     let modelStage: any = null,
       baseLayer: any = null,
       realLayer: any = null,
@@ -162,6 +162,9 @@ export default defineComponent({
         console.log();
         clientWidth = tfInterModel.value.clientWidth;
         clientHeight = tfInterModel.value.clientHeight;
+        if (!clientWidth || !clientHeight) {
+          return;
+        }
         baseLayerWidth = Math.min(clientWidth, clientHeight);
         // 1、初始化canvas场景：Stage
         modelStage = new Konva.Stage({
@@ -206,7 +209,6 @@ export default defineComponent({
         const me = this;
         const drawInterData = this.resetInterData(interData);
         cross = new CrossInfo(drawInterData);
-        // console.log(this.cross)
         // 根据数据绘画
         const roadPolygonShape = new Konva.Shape({
           stroke: "#23324b",
@@ -522,6 +524,17 @@ export default defineComponent({
         realLayer.width = height;
         modelStage.add(realLayer);
       },
+      // 根据方向id获取进口id
+      getEnidWithDirection(enter_port_direction: any) {
+        let en_id = null;
+        const item: any = cross.entrances.find((it: any) => {
+          return it.orientation === enter_port_direction;
+        });
+        if (item) {
+          en_id = item.en_id;
+        }
+        return en_id;
+      },
       // 绘制进口流向
       drawRoadFlow(movements: any, cb: any) {
         const sortMovement = this.getSortMovement(movements);
@@ -807,7 +820,10 @@ export default defineComponent({
         let sortMovement: any = [];
         cross.entranceArray.forEach((it: any, i: any) => {
           const enterMove = movements.filter((itt: any) => {
-            return itt.enter_port_direction === it.en_id && itt.if_control;
+            const en_id = drawMethods.getEnidWithDirection(
+              itt.enter_port_direction
+            );
+            return en_id === it.en_id && itt.if_control;
           });
           // 流向带左
           const leftArray = enterMove.filter((itt: any) => {
@@ -1952,6 +1968,11 @@ export default defineComponent({
               } else {
                 if (Number(itt) !== 1 && Number(itt) !== 0) {
                   list.push(flow.movements_type);
+                  // }
+                } else {
+                  if (Number(itt) !== 1 && Number(itt) !== 0) {
+                    list.push(flow.movements_type);
+                  }
                 }
               }
             }
@@ -1990,8 +2011,11 @@ export default defineComponent({
             const flow = movementMap[j + 1];
             if (flow) {
               flow.fd_flow = !!flow.fd_flow;
+              const en_id = drawMethods.getEnidWithDirection(
+                flow.enter_port_direction
+              );
               if (
-                flow.enter_port_direction === it.en_id &&
+                en_id === it.en_id &&
                 flow.if_control &&
                 flow.fd_flow === fdFlow
               ) {
@@ -2155,10 +2179,10 @@ export default defineComponent({
         let greenFlowList: any = [];
         movementParas.forEach((it: any) => {
           if (it.if_control) {
-            if (
-              it.enter_port_direction === curEntrance.en_id &&
-              it.fd_flow === fdFlow
-            ) {
+            const en_id = drawMethods.getEnidWithDirection(
+              it.enter_port_direction
+            );
+            if (en_id === curEntrance.en_id && it.fd_flow === fdFlow) {
               if (movements_state[it.num_movements - 1] === 3) {
                 greenFlowList.push(it.movements_type);
               }
@@ -3132,7 +3156,7 @@ export default defineComponent({
 });
 </script>
  
-<style scoped lang="scss">
+<style lang="scss">
 .sc-tf-inter-model {
   width: 100%;
   height: 100%;
@@ -3155,18 +3179,13 @@ export default defineComponent({
     width: auto;
     height: 100%;
     z-index: 2;
-  }
-  .sc-tf-phase-box {
-    // position: absolute;
-    // left: 0;
-    // top: 0;
-    // z-index: 2;
-    width: calc(100% + 20px);
-    // background-color: #fff;
-    height: 100%;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
+    .sc-tf-phase-box {
+      width: calc(100% + 20px);
+      height: 100%;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
   }
 }
 </style>
