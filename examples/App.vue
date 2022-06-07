@@ -25,6 +25,7 @@ const interData = {
       id: 1,
       road_center_mode: "singleYellowLine", // 分割形式
       canalization: 0,
+      twice_crossing_street: 1, // 二次过街
       exit_lanes: [
         {
           id: 1,
@@ -65,7 +66,7 @@ const interData = {
       orientation: 2,
       en_id: 2,
       road_center_mode: "greenArea",
-      canalization: 1,
+      canalization: 0,
       id: 2,
       exit_lanes: [
         {

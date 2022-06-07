@@ -450,10 +450,14 @@ export default defineComponent({
             baseLayer.add(laneFlowPolygonShape);
           }
         });
+        // 要在后面绘制，防止覆盖
         cross.entranceArray.map((info: any, index: any) => {
-          // 绘制右转渠化
-          if (info.canalization && state.interType !== 2) {
-            drawMethods.drawCanalization(info.en_id);
+          if (state.interType !== 2) {
+            // 绘制右转渠化
+            info.canalization && drawMethods.drawCanalization(info.en_id);
+            // 二次过街绘制 安全岛
+            info.twice_crossing_street &&
+              drawMethods.drawTwiceIsland(info.en_id);
             // 添加非机动车标志
             drawMethods.drawBikeLogo(info);
           }
@@ -521,54 +525,56 @@ export default defineComponent({
       // 绘制进口流向
       drawRoadFlow(movements: any, cb: any) {
         const sortMovement = this.getSortMovement(movements);
-        sortMovement.forEach((it: any) => {
-          // 主道流向
-          it.flowList.forEach((itt: any, j: any) => {
-            if (itt.if_control) {
-              const entrance = cross.entranceArray[it.en_id - 1];
-              const startPoint = this.getStartPoint(
-                itt.movements_type,
-                j,
-                it,
-                "main"
-              );
-              const flowData = getDrawFlowData(
-                startPoint,
-                CrossConst.roadWidth,
-                itt.movements_type,
-                entrance
-              );
-              const rotateFlowData = this.getRotateData(
-                flowData,
-                entrance.angle
-              );
-              this.drawRoadFlowWithData(rotateFlowData, itt, cb);
-            }
-          });
-          // 辅道流向
-          it.fdflowList.forEach((itt: any, j: any) => {
-            if (itt.if_control) {
-              const entrance = cross.entranceArray[it.en_id - 1];
-              const startPoint = this.getStartPoint(
-                itt.movements_type,
-                j,
-                it,
-                "fd"
-              );
-              const flowData = getDrawFlowData(
-                startPoint,
-                CrossConst.roadWidth,
-                itt.movements_type,
-                entrance,
-                "fd"
-              );
-              const rotateFlowData = this.getRotateData(
-                flowData,
-                entrance.angle
-              );
-              this.drawRoadFlowWithData(rotateFlowData, itt, cb);
-            }
-          });
+        sortMovement.forEach((it: any, i: any) => {
+          if (cross.entranceArray[i].in) {
+            // 主道流向
+            it.flowList.forEach((itt: any, j: any) => {
+              if (itt.if_control) {
+                const entrance = cross.entranceArray[it.en_id - 1];
+                const startPoint = this.getStartPoint(
+                  itt.movements_type,
+                  j,
+                  it,
+                  "main"
+                );
+                const flowData = getDrawFlowData(
+                  startPoint,
+                  CrossConst.roadWidth,
+                  itt.movements_type,
+                  entrance
+                );
+                const rotateFlowData = this.getRotateData(
+                  flowData,
+                  entrance.angle
+                );
+                this.drawRoadFlowWithData(rotateFlowData, itt, cb);
+              }
+            });
+            // 辅道流向
+            it.fdflowList.forEach((itt: any, j: any) => {
+              if (itt.if_control) {
+                const entrance = cross.entranceArray[it.en_id - 1];
+                const startPoint = this.getStartPoint(
+                  itt.movements_type,
+                  j,
+                  it,
+                  "fd"
+                );
+                const flowData = getDrawFlowData(
+                  startPoint,
+                  CrossConst.roadWidth,
+                  itt.movements_type,
+                  entrance,
+                  "fd"
+                );
+                const rotateFlowData = this.getRotateData(
+                  flowData,
+                  entrance.angle
+                );
+                this.drawRoadFlowWithData(rotateFlowData, itt, cb);
+              }
+            });
+          }
         });
       },
 
@@ -892,43 +898,45 @@ export default defineComponent({
       drawFlowSaturation(flowSaturation: any) {
         flowSaturation.forEach((it: any, i: any) => {
           const enterInfo = cross.entranceArray[it.enter_port_direction - 1];
-          const flowData =
-            enterInfo.polygonData.roadFlowPolygon[it.movements_type - 1];
-          // 绘制饱和度流向
-          const roadFlowPolygonShape = new Konva.Shape({
-            stroke: state.drawOption.saturationFlowColor,
-            fill: state.drawOption.saturationFlowColor,
-            strokeWidth: 1,
-            info: it,
-            sceneFunc(context: any, shape: any) {
-              context.beginPath();
-              flowData.forEach((itt: any, j: any) => {
-                if (j === 0) {
-                  context.moveTo(itt[0], -itt[1]);
-                } else {
-                  context.lineTo(itt[0], -itt[1]);
-                }
-              });
-              context.closePath();
-              context.fillStrokeShape(shape);
-            },
-          });
-          baseLayer.add(roadFlowPolygonShape);
+          if (enterInfo.in) {
+            const flowData =
+              enterInfo.polygonData.roadFlowPolygon[it.movements_type - 1];
+            // 绘制饱和度流向
+            const roadFlowPolygonShape = new Konva.Shape({
+              stroke: state.drawOption.saturationFlowColor,
+              fill: state.drawOption.saturationFlowColor,
+              strokeWidth: 1,
+              info: it,
+              sceneFunc(context: any, shape: any) {
+                context.beginPath();
+                flowData.forEach((itt: any, j: any) => {
+                  if (j === 0) {
+                    context.moveTo(itt[0], -itt[1]);
+                  } else {
+                    context.lineTo(itt[0], -itt[1]);
+                  }
+                });
+                context.closePath();
+                context.fillStrokeShape(shape);
+              },
+            });
+            baseLayer.add(roadFlowPolygonShape);
 
-          const { x, y } =
-            enterInfo.correctPoint.pointRoadFlowText[it.movements_type - 1];
-          // 绘制饱和度
-          let saturationText = new Konva.Text({
-            x: x,
-            y: -y,
-            text: it.data,
-            fontSize: 12,
-            fontFamily: "Calibri",
-            fill: state.drawOption.saturationFlowColor,
-            rotation: this.getTextRotationByDegree(enterInfo.degree),
-          });
-          this.offsetText(saturationText, enterInfo.degree);
-          baseLayer.add(saturationText);
+            const { x, y } =
+              enterInfo.correctPoint.pointRoadFlowText[it.movements_type - 1];
+            // 绘制饱和度
+            let saturationText = new Konva.Text({
+              x: x,
+              y: -y,
+              text: it.data,
+              fontSize: 12,
+              fontFamily: "Calibri",
+              fill: state.drawOption.saturationFlowColor,
+              rotation: this.getTextRotationByDegree(enterInfo.degree),
+            });
+            this.offsetText(saturationText, enterInfo.degree);
+            baseLayer.add(saturationText);
+          }
         });
       },
       // 绘制车道或者进出口背景
@@ -1378,6 +1386,45 @@ export default defineComponent({
             cb(info);
           });
         }
+      },
+      // 绘制二次过街安全岛
+      drawTwiceIsland(en_id: any) {
+        let index = en_id - 1;
+        const curEntrance = cross.entranceArray[index];
+        // 获取绘制安全岛点位
+        const { y } = curEntrance.point.H0[curEntrance.in];
+        const greenWidth = CrossConst.greenWidth; // 绿化带宽度
+        // const doubleYellowLineInterval = CrossConst.doubleYellowLineInterval // 双黄线宽度
+        const manRoadLength = CrossConst.manRoadLength; // 双黄线宽度
+        const manCarInterval = CrossConst.manCarInterval; // 双黄线宽度
+        const points: any = [];
+        const width = greenWidth;
+        // 单黄线
+        if (curEntrance.road_center_mode === "singleYellowLine") {
+          // const { x: x, y: y } = Util.pointRotateAngel(topPoint, -curEntrance.angle)
+        }
+        this.drawPolygon(points, { fill: "#2e8348", opacity: 0.8 });
+        const { x: x1, y: y1 } = Util.pointRotateAngel(
+          { x: -width, y: y + manCarInterval },
+          -curEntrance.angle
+        );
+        const { x: x2, y: y2 } = Util.pointRotateAngel(
+          { x: width, y: y + manCarInterval },
+          -curEntrance.angle
+        );
+        const { x: x3, y: y3 } = Util.pointRotateAngel(
+          { x: width, y: y + manCarInterval + manRoadLength },
+          -curEntrance.angle
+        );
+        const { x: x4, y: y4 } = Util.pointRotateAngel(
+          { x: -width, y: y + manCarInterval + manRoadLength },
+          -curEntrance.angle
+        );
+        points.push([x1, y1]);
+        points.push([x2, y2]);
+        points.push([x3, y3]);
+        points.push([x4, y4]);
+        drawMethods.drawPolygon(points, { fill: "#2e8348", opacity: 0.8 });
       },
       // 绘制右转渠化 en_id 进口车道id 根据渠化类型，展示不通渠化
       drawCanalization(en_id: any) {
@@ -1899,9 +1946,9 @@ export default defineComponent({
                   list.push(flow.movements_type);
                 }
               } else if (type === "run") {
-                // if (Number(itt)) {
-                list.push(flow.movements_type);
-                // }
+                if (Number(itt) === 2 || Number(itt) === 3) {
+                  list.push(flow.movements_type);
+                }
               } else {
                 if (Number(itt) !== 1 && Number(itt) !== 0) {
                   list.push(flow.movements_type);
@@ -1929,7 +1976,7 @@ export default defineComponent({
         moveList: any,
         movementParas: any,
         type = 1,
-        road_type: any
+        road_type = "main"
       ) {
         const movenents: any = [];
         let movementMap: any = {};
@@ -2069,19 +2116,25 @@ export default defineComponent({
             const entrance = cross.entranceArray[i];
             // 匝道并且不是第三个进口就不绘制
             if (cross.is_have_son !== 2 || entrance.en_id === 3) {
-              const flowData = getInterPhaseflowData(itt, entrance, road_type);
-              const rotateFlowData = drawMethods.getRotateData(
-                flowData,
-                entrance.angle
-              );
-              const color = this.getInterPhaseFlowColor(
-                realInfo.movements_state,
-                movements,
-                i,
-                itt,
-                road_type
-              );
-              this.drawInterPhaseFlow(rotateFlowData, color);
+              if (cross.entranceArray[i].in) {
+                const flowData = getInterPhaseflowData(
+                  itt,
+                  entrance,
+                  road_type
+                );
+                const rotateFlowData = drawMethods.getRotateData(
+                  flowData,
+                  entrance.angle
+                );
+                const color = this.getInterPhaseFlowColor(
+                  realInfo.movements_state,
+                  movements,
+                  i,
+                  itt,
+                  road_type
+                );
+                this.drawInterPhaseFlow(rotateFlowData, color);
+              }
             }
           });
         });
@@ -2175,25 +2228,25 @@ export default defineComponent({
           realInfo.movements_state,
           movements,
           0,
-          null
+          "main"
         );
         const redPhaseList = drawRealMethods.getTypePhaseListWithBin(
           realInfo.movements_state,
           movements,
           1,
-          null
+          "main"
         );
         const yellowPhaseList = drawRealMethods.getTypePhaseListWithBin(
           realInfo.movements_state,
           movements,
           2,
-          null
+          "main"
         );
         const greenPhaseList = drawRealMethods.getTypePhaseListWithBin(
           realInfo.movements_state,
           movements,
           3,
-          null
+          "main"
         );
         phaseList.forEach((it: any, i: any) => {
           const greyPhases = greyPhaseList[i];
@@ -2225,39 +2278,91 @@ export default defineComponent({
           const manPoint = this.getEntranceManPoint(entrance);
           // 人行数据 绿灯
           if (it.includes(4)) {
-            this.drawFootLight(manPoint[0], "green", entrance.angle, runColor);
-            this.drawFootLight(manPoint[3], "green", entrance.angle, runColor);
+            drawRealMethods.drawFootLight(
+              manPoint[0],
+              "green",
+              entrance.angle,
+              runColor
+            );
+            drawRealMethods.drawFootLight(
+              manPoint[3],
+              "green",
+              entrance.angle,
+              runColor
+            );
           } else {
             if (it.includes(10) || it.includes(11)) {
               if (it.includes(10)) {
                 // 人行1
-                this.drawFootLight(
+                drawRealMethods.drawFootLight(
                   manPoint[0],
                   "green",
                   entrance.angle,
                   run1Color
                 );
-                this.drawFootLight(
+                drawRealMethods.drawFootLight(
                   manPoint[1],
                   "green",
                   entrance.angle,
                   run1Color
                 );
+              } else {
+                drawRealMethods.drawFootLight(
+                  manPoint[0],
+                  "red",
+                  entrance.angle,
+                  run1Color
+                );
+                drawRealMethods.drawFootLight(
+                  manPoint[1],
+                  "red",
+                  entrance.angle,
+                  run1Color
+                );
               }
               if (it.includes(11)) {
-                this.drawFootLight(
+                // 人行2
+                drawRealMethods.drawFootLight(
                   manPoint[2],
                   "green",
                   entrance.angle,
                   run2Color
                 );
-                this.drawFootLight(
+                drawRealMethods.drawFootLight(
                   manPoint[3],
                   "green",
                   entrance.angle,
                   run2Color
                 );
+              } else {
+                // 人行2
+                drawRealMethods.drawFootLight(
+                  manPoint[2],
+                  "red",
+                  entrance.angle,
+                  run2Color
+                );
+                drawRealMethods.drawFootLight(
+                  manPoint[3],
+                  "red",
+                  entrance.angle,
+                  run2Color
+                );
               }
+            } else {
+              //红灯
+              drawRealMethods.drawFootLight(
+                manPoint[0],
+                "red",
+                entrance.angle,
+                runColor
+              );
+              drawRealMethods.drawFootLight(
+                manPoint[3],
+                "red",
+                entrance.angle,
+                runColor
+              );
             }
           }
         });
@@ -2419,6 +2524,68 @@ export default defineComponent({
               rightColor,
               xAngle
             );
+            // 绘制非机动车左转
+            if (
+              redPhases.includes(12) ||
+              yellowPhases.includes(12) ||
+              greenPhases.includes(12)
+            ) {
+              let nonLeftColor = this.getLightcolor(
+                "nonLeft",
+                greyPhases,
+                redPhases,
+                yellowPhases,
+                greenPhases
+              );
+              if (nonLeftColor) {
+                this.drawLightHandler(
+                  points[3],
+                  "nonBack",
+                  angle,
+                  null,
+                  xAngle,
+                  road_type
+                );
+                this.drawLightHandler(
+                  points[3],
+                  "nonLeft",
+                  angle,
+                  nonLeftColor,
+                  xAngle
+                );
+              }
+            }
+            // 绘制非机动车直行
+            if (
+              redPhases.includes(13) ||
+              yellowPhases.includes(13) ||
+              greenPhases.includes(13)
+            ) {
+              let nonCenterColor = this.getLightcolor(
+                "nonCenter",
+                greyPhases,
+                redPhases,
+                yellowPhases,
+                greenPhases
+              );
+              if (nonCenterColor) {
+                this.drawLightHandler(
+                  points[4],
+                  "nonBack",
+                  angle,
+                  null,
+                  xAngle,
+                  road_type
+                );
+                this.drawLightHandler(
+                  points[4],
+                  "nonCenter",
+                  angle,
+                  nonCenterColor,
+                  xAngle
+                );
+              }
+            }
           }
         });
       },
@@ -2437,7 +2604,7 @@ export default defineComponent({
           { phase: yellowPhases, color: state.drawOption.yellowColor },
           { phase: greenPhases, color: state.drawOption.greenColor },
         ];
-        let color = state.drawOption.greyColor;
+        let color = "";
         if (type === "left") {
           // const flowMap = [1, 5, 7, 8, 9]
           phaseMap.forEach((it) => {
@@ -2474,11 +2641,25 @@ export default defineComponent({
               color = it.color;
             }
           });
+        } else if (type === "nonLeft") {
+          // const flowMap = [12]
+          phaseMap.forEach((it) => {
+            if (it.phase.includes(12)) {
+              color = it.color;
+            }
+          });
+        } else if (type === "nonCenter") {
+          // const flowMap = [13]
+          phaseMap.forEach((it) => {
+            if (it.phase.includes(13)) {
+              color = it.color;
+            }
+          });
         }
         return color;
       },
 
-      // 获取人行速度
+      // 获取人行颜色
       getRuncolor(
         type: any,
         greyPhases: any,
@@ -2486,13 +2667,19 @@ export default defineComponent({
         yellowPhases: any,
         greenPhases: any
       ) {
+        // 关灯
+        if (ctrlWay === 7) {
+          return state.drawOption.greyColor;
+        } else if (ctrlWay === 9) {
+          return state.drawOption.redColor;
+        }
         const phaseMap = [
           { phase: greenPhases, color: state.drawOption.greenColor },
           { phase: yellowPhases, color: state.drawOption.yellowColor },
           { phase: redPhases, color: state.drawOption.redColor },
           { phase: greyPhases, color: state.drawOption.greyColor },
         ];
-        let color = state.drawOption.greenColor;
+        let color = state.drawOption.redColor;
         if (type === "run") {
           phaseMap.forEach((it) => {
             if (it.phase.includes(4)) {
@@ -2622,7 +2809,21 @@ export default defineComponent({
           centerPoint[0] + radius * 2 + margin,
           centerPoint[1] + offsetHeight * (radius * 2 + margin),
         ];
-        points = [leftPoint, centerPoint, rightPoint];
+        const nonLeftPoint = [
+          centerPoint[0] - radius * 6,
+          centerPoint[1] - offsetHeight * (radius * 5),
+        ]; //非机动车左
+        const nonCenterPoint = [
+          centerPoint[0] - radius * 8 - margin,
+          centerPoint[1] - offsetHeight * (radius * 8 + margin),
+        ]; //非机动车直
+        points = [
+          leftPoint,
+          centerPoint,
+          rightPoint,
+          nonLeftPoint,
+          nonCenterPoint,
+        ];
         angle = drawEntrance.angle;
         return { points, angle };
       },
@@ -2720,6 +2921,19 @@ export default defineComponent({
           lightBack.offsetX(lightBack.width() / 2);
           lightBack.offsetY(lightBack.height() / 2);
           realLayer.add(lightBack);
+        } else if (drawType === "nonBack") {
+          let lightBack = new Konva.Rect({
+            x: centerPoint.x,
+            y: -centerPoint.y,
+            width: radius * 2 + 2,
+            height: radius * 2 + 2,
+            fill: road_type === "main" ? "#888" : "#666",
+            rotation: xAngle,
+            cornerRadius: radius,
+          });
+          lightBack.offsetX(lightBack.width() / 2);
+          lightBack.offsetY(lightBack.height() / 2);
+          realLayer.add(lightBack);
         } else {
           // 红绿灯黑底
           let circle = new Konva.Circle({
@@ -2737,7 +2951,7 @@ export default defineComponent({
               fill: color,
             });
             realLayer.add(centerCircle);
-          } else {
+          } else if (drawType === "left" || drawType === "right") {
             const lightData = getDirectionLightData(
               { x: point[0], y: point[1] },
               drawType
@@ -2761,6 +2975,103 @@ export default defineComponent({
               },
             });
             realLayer.add(lightPolygonShape);
+          } else if (drawType === "nonLeft" || drawType === "nonCenter") {
+            console.log(drawType);
+            const ponitInfo: any = getDirectionLightData(
+              { x: point[0], y: point[1] },
+              drawType
+            );
+            const { point1, point2, polygon1, polygon2, polygon3 } = ponitInfo;
+            const rotatePoint1 = drawMethods.getRotateData(point1, angle);
+            const rotatePoint2 = drawMethods.getRotateData(point2, angle);
+            const rotatePolygon1 = drawMethods.getRotateData(polygon1, angle);
+            const rotatePolygon2 = drawMethods.getRotateData(polygon2, angle);
+            const rotatePolygon3 = drawMethods.getRotateData(polygon3, angle);
+            // 绘制两个圆
+            let circle1 = new Konva.Circle({
+              x: rotatePoint1.x,
+              y: -rotatePoint1.y,
+              radius: ((CrossConst.roadWidth / 3) * 4) / 5 / 3,
+              fill: color,
+            });
+            let circle2 = new Konva.Circle({
+              x: rotatePoint1.x,
+              y: -rotatePoint1.y,
+              radius: ((CrossConst.roadWidth / 3) * 4) / 5 / 4,
+              fill: "#000000",
+            });
+            let circle3 = new Konva.Circle({
+              x: rotatePoint2.x,
+              y: -rotatePoint2.y,
+              radius: ((CrossConst.roadWidth / 3) * 4) / 5 / 3,
+              fill: color,
+            });
+            let circle4 = new Konva.Circle({
+              x: rotatePoint2.x,
+              y: -rotatePoint2.y,
+              radius: ((CrossConst.roadWidth / 3) * 4) / 5 / 4,
+              fill: "#000000",
+            });
+
+            let polygonShape1 = new Konva.Shape({
+              stroke: color,
+              fill: color,
+              strokeWidth: 0.2,
+              sceneFunc(context, shape) {
+                context.beginPath();
+                rotatePolygon1.forEach((it: any, k: any) => {
+                  if (k === 0) {
+                    context.moveTo(it.x, -it.y);
+                  } else {
+                    context.lineTo(it.x, -it.y);
+                  }
+                });
+                context.closePath();
+                context.fillStrokeShape(shape);
+              },
+            });
+            let polygonShape2 = new Konva.Shape({
+              stroke: color,
+              fill: color,
+              strokeWidth: 0.2,
+              sceneFunc(context, shape) {
+                context.beginPath();
+                rotatePolygon2.forEach((it: any, k: any) => {
+                  if (k === 0) {
+                    context.moveTo(it.x, -it.y);
+                  } else {
+                    context.lineTo(it.x, -it.y);
+                  }
+                });
+                context.closePath();
+                context.fillStrokeShape(shape);
+              },
+            });
+            let polygonShape3 = new Konva.Shape({
+              stroke: color,
+              fill: color,
+              strokeWidth: 0.2,
+              sceneFunc(context, shape) {
+                context.beginPath();
+                rotatePolygon3.forEach((it: any, k: any) => {
+                  if (k === 0) {
+                    context.moveTo(it.x, -it.y);
+                  } else {
+                    context.lineTo(it.x, -it.y);
+                  }
+                });
+                context.closePath();
+                context.fillStrokeShape(shape);
+              },
+            });
+
+            realLayer.add(circle1);
+            realLayer.add(circle2);
+            realLayer.add(circle3);
+            realLayer.add(circle4);
+            realLayer.add(polygonShape1);
+            realLayer.add(polygonShape2);
+            realLayer.add(polygonShape3);
           }
         }
       },
